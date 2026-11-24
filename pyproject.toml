@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pazar"
+version = "1.0.0"
+description = "Търсене на продукти по магазини, списъци за пазаруване и следене на разходите"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+pazar = "pazar.cli:main"
+
+[tool.setuptools]
+packages = ["pazar"]

@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пазар — списъци и разходи</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#1c2430; --muted:#6b7684; --line:#e5e8ec;
+    --accent:#2f6fed; --ok:#1f9d55; --bad:#d64545; --warn:#b7791f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+       -webkit-text-size-adjust:100%}
+  .wrap{max-width:860px;margin:0 auto;padding:14px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 10px}
+  .brand{display:flex;gap:10px;align-items:center;min-width:0}
+  .logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:#fff;
+        display:grid;place-items:center;font-weight:750;font-size:19px;flex:0 0 auto}
+  h1{font-size:19px;margin:0;letter-spacing:-.2px}
+  .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tabs{display:flex;gap:5px;background:#eceff3;padding:4px;border-radius:13px;margin:4px 0 14px}
+  .tab{flex:1;border:0;background:transparent;padding:9px 4px;border-radius:10px;
+       font:inherit;font-size:13px;font-weight:650;color:#5b6675;cursor:pointer}
+  .tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(16,24,40,.09)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:14px;margin-bottom:12px}
+  .input{width:100%;padding:11px 13px;border:1px solid #dfe4ea;border-radius:11px;
+         font:inherit;background:#fff;color:inherit}
+  .input:focus{outline:2px solid rgba(47,111,237,.2);border-color:var(--accent)}
+  .btn{border:1px solid #dfe4ea;background:#fff;color:var(--ink);border-radius:10px;
+       padding:9px 13px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;
+       white-space:nowrap}
+  .btn:hover{border-color:#cfd6de}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:#2a63d4}
+  .btn.danger{color:var(--bad)}
+  .btn.small{padding:6px 10px;font-size:12px}
+  .btn.block{width:100%;justify-content:center}
+  .row{display:flex;gap:9px;align-items:center}
+  .between{justify-content:space-between}
+  .muted{color:var(--muted);font-size:13px}
+  .hint{color:var(--muted);font-size:12px;margin:8px 2px 0}
+  .ptitle{font-weight:650;font-size:15px}
+  .pmeta{font-size:12px;color:var(--muted);margin-top:1px}
+  .phead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+  .prow{display:flex;justify-content:space-between;gap:10px;padding:6px 9px;border-radius:8px;font-size:13.5px}
+  .prow.best{background:#eef6ee;color:#166534;font-weight:650}
+  .pprice{font-variant-numeric:tabular-nums}
+  .plist{display:grid;gap:10px}
+  .addrow{display:flex;gap:8px;margin-top:10px}
+  .addrow .input{flex:1}
+  .group{margin-bottom:14px}
+  .ghead{display:flex;justify-content:space-between;font-size:12px;font-weight:700;
+         color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:4px 2px 2px}
+  .item{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #eef1f4}
+  .item:last-child{border-bottom:0}
+  .check{width:25px;height:25px;border-radius:8px;border:1.5px solid #cfd6de;background:#fff;
+         cursor:pointer;flex:0 0 auto;font-weight:800;color:var(--ok);font-size:14px;line-height:1}
+  .imain{flex:1;min-width:0}
+  .iname{font-weight:560;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .imeta{font-size:12px;color:var(--muted)}
+  .itotal{font-variant-numeric:tabular-nums;font-weight:600;font-size:13.5px;white-space:nowrap}
+  .item.bought .iname{text-decoration:line-through;color:#8a94a2}
+  .item.bought .itotal{color:var(--ok)}
+  .x{border:0;background:transparent;color:#b3bcc7;font-size:20px;cursor:pointer;
+     padding:2px 4px;line-height:1;flex:0 0 auto}
+  .x:hover{color:var(--bad)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px}
+  .stat .l{font-size:11.5px;color:var(--muted)}
+  .stat .v{font-size:19px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .bar{height:9px;background:#eceff3;border-radius:6px;overflow:hidden;margin:9px 0 6px}
+  .bar .fill{display:block;height:100%;background:var(--accent);border-radius:6px}
+  .bar .fill.over{background:var(--bad)}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #eef1f4;font-size:14px}
+  .kv:last-child{border-bottom:0}
+  .kv .n{color:var(--muted)}
+  .kv .v{font-variant-numeric:tabular-nums;font-weight:600}
+  .empty{text-align:center;color:var(--muted);padding:18px 6px;font-size:14px}
+  .pill{display:inline-block;background:#eef2f7;color:#55606f;border-radius:999px;
+        padding:2px 8px;font-size:11.5px;font-weight:600;margin-left:6px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .divider{height:1px;background:var(--line);margin:12px 0}
+  .select{appearance:none;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 11px center;
+          padding-right:30px}
+  #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(16px);
+         background:#1c2430;color:#fff;padding:10px 16px;border-radius:11px;font-size:13.5px;
+         opacity:0;pointer-events:none;transition:opacity .18s, transform .18s;z-index:9;
+         max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:6px 10px 22px}
+
+  /* --- products/categories --- */
+  .catrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .catrow .input{flex:1}
+  .catlist{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .catpill{display:flex;align-items:center;gap:6px;background:#eef2f7;color:#55606f;
+           border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:600}
+  .catpill button{border:0;background:transparent;color:#b3bcc7;font-size:14px;cursor:pointer;padding:0 2px;line-height:1}
+  .catpill button:hover{color:var(--bad)}
+  .prowcard{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:start;
+            padding:10px;border:1px solid var(--line);border-radius:10px;background:#fafbfc;margin-bottom:8px}
+  .pimg{width:56px;height:56px;border-radius:10px;background:#f0f2f5;object-fit:cover;flex:0 0 auto}
+  .pimgph{width:56px;height:56px;border-radius:10px;background:#f0f2f5;display:grid;place-items:center;color:#b3bcc7;font-size:20px;flex:0 0 auto}
+  .pinfo{min-width:0}
+  .pname{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pmeta2{font-size:12px;color:var(--muted)}
+  .pprices{font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap}
+  .pprices .best{color:var(--ok);font-weight:600}
+  .uploader{position:relative;display:inline-block}
+  .uploader input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .dropzone{border:2px dashed #cfd6de;border-radius:10px;padding:14px;text-align:center;color:var(--muted);
+            background:#fafbfc;transition:border-color .15s, background .15s}
+  .dropzone.dragover{border-color:var(--accent);background:#eef3ff;color:var(--accent)}
+  .modal{position:fixed;inset:0;background:rgba(16,24,40,.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+  .modal.hidden{display:none}
+  .modalbox{background:var(--card);border-radius:16px;padding:18px;max-width:420px;width:100%;max-height:85vh;overflow:auto}
+  .modal h3{margin:0 0 12px}
+  .modal .row{gap:8px}
+  .modal .actions{margin-top:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:480px){.grid2{grid-template-columns:1fr}}
+  @media (max-width:420px){
+    .stats{gap:7px}
+    .stat{padding:10px}
+    .stat .v{font-size:17px}
+    .addrow{flex-wrap:wrap}
+    .addrow .btn{flex:0 0 auto}
+    .prowcard{grid-template-columns:48px 1fr auto;gap:8px}
+    .pimg,.pimgph{width:48px;height:48px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">П</div>
+      <div style="min-width:0">
+        <h1>Пазар</h1>
+        <div class="sub">Списъци, цени и разходи</div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn small" id="demoBtn" onclick="armDemo(this)">Демо</button>
+      <button class="btn small danger" id="wipeBtn" onclick="armWipe(this)">Изтрий</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab" data-t="search" onclick="setTab('search')">Търсене</button>
+    <button class="tab" data-t="list" onclick="setTab('list')">Списък</button>
+    <button class="tab" data-t="products" onclick="setTab('products')">Продукти</button>
+    <button class="tab" data-t="purchases" onclick="setTab('purchases')">Покупки</button>
+    <button class="tab" data-t="report" onclick="setTab('report')">Отчет</button>
+  </nav>
+
+  <main id="view"></main>
+
+  <footer>Демо версия · данните се пазят само в този браузър · цените са примерни</footer>
+</div>
+<div id="toast"></div>
+
+<!-- Modal за добавяне/редактиране на продукт -->
+<div id="prodModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="prodModalTitle">
+  <div class="modalbox">
+    <h3 id="prodModalTitle">Продукт</h3>
+    <div class="prowcard" style="margin-bottom:12px">
+      <div class="dropzone" id="dropzone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropImage(event)">
+        <div id="dropPreview" class="pimgph">📷</div>
+        <div id="dropText">Свали снимка тук или натисни</div>
+        <label class="uploader" style="display:block;margin-top:8px">
+          <input type="file" accept="image/*" onchange="pickImage(this.files[0])">
+          <button class="btn primary" style="width:100%">Избери файл</button>
+        </label>
+      </div>
+      <div class="pinfo" style="min-width:0">
+        <div class="pname" id="modalPname">—</div>
+        <div class="pmeta2" id="modalPmeta">—</div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label class="muted" style="display:block;margin-bottom:4px">Име</label>
+        <input id="prodName" class="input">
+      </div>
+      <div>
+        <label class="muted" style="display:block;margin-bottom:4px">Категория</label>
+        <input id="prodCat" class="input" list="catlist">
+        <datalist id="catlist"></datalist>
+      </div>
+      <div>
+        <label class="muted" style="display:block;margin-bottom:4px">Ед. мярка</label>
+        <input id="prodUnit" class="input" value="бр" list="unitlist">
+        <datalist id="unitlist"><option>бр</option><option>кг</option><option>л</option><option>г</option><option>мл</option></datalist>
+      </div>
+      <div>
+        <label class="muted" style="display:block;margin-bottom:4px">Ключови думи (запетайки)</label>
+        <input id="prodKw" class="input" placeholder="мляко, краве, прясно">
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <label class="muted" style="display:block;margin-bottom:6px">Цени по магазини</label>
+      <div id="priceInputs" class="grid2" style="gap:6px"></div>
+    </div>
+    <div class="hint" style="margin-top:8px">Празно поле = няма цена в този магазин. Цените се използват при сравнение и в списъците.</div>
+    <div class="actions">
+      <button class="btn" onclick="closeProdModal()">Отказ</button>
+      <button class="btn primary" id="prodSaveBtn" onclick="saveProduct()">Запази</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEMO = {"stores": ["Лидл", "Кауфланд", "Билла", "Фантастико"], "products": [{"name": "Мляко 3% 1 л", "cat": "Млечни", "unit": "бр", "kw": ["мляко", "краве", "прясно"], "prices": [["Лидл", "2.29"], ["Кауфланд", "2.45"], ["Билла", "2.59"]]}, {"name": "Кисело мляко 400 г", "cat": "Млечни", "unit": "бр", "kw": ["йогурт", "кисело"], "prices": [["Лидл", "1.79"], ["Билла", "1.99"], ["Фантастико", "2.09"]]}, {"name": "Сирене бяло 200 г", "cat": "Млечни", "unit": "бр", "kw": ["сирене", "бяло"], "prices": [["Кауфланд", "3.29"], ["Лидл", "3.49"], ["Билла", "3.79"]]}, {"name": "Кашкавал 200 г", "cat": "Млечни", "unit": "бр", "kw": ["кашкавал", "кашкавал на резени"], "prices": [["Лидл", "3.99"], ["Кауфланд", "4.19"]]}, {"name": "Масло 82% 250 г", "cat": "Млечни", "unit": "бр", "kw": ["масло", "краве"], "prices": [["Билла", "3.59"], ["Лидл", "3.69"], ["Кауфланд", "3.85"]]}, {"name": "Яйца 10 бр", "cat": "Млечни", "unit": "бр", "kw": ["яйца", "яйце"], "prices": [["Лидл", "4.29"], ["Кауфланд", "4.59"], ["Фантастико", "4.79"]]}, {"name": "Хляб бял 500 г", "cat": "Хлебни", "unit": "бр", "kw": ["хляб", "бял хляб"], "prices": [["Лидл", "1.29"], ["Кауфланд", "1.39"], ["Билла", "1.49"]]}, {"name": "Хляб ръжен 500 г", "cat": "Хлебни", "unit": "бр", "kw": ["хляб", "ръжен", "пълнозърнест"], "prices": [["Кауфланд", "1.89"], ["Лидл", "1.99"], ["Билла", "2.19"]]}, {"name": "Багета 250 г", "cat": "Хлебни", "unit": "бр", "kw": ["багета", "френски хляб"], "prices": [["Билла", "1.59"], ["Фантастико", "1.69"]]}, {"name": "Ориз дългозърнест 1 кг", "cat": "Бакалия", "unit": "кг", "kw": ["ориз", "бял ориз"], "prices": [["Кауфланд", "2.49"], ["Лидл", "2.59"], ["Билла", "2.79"]]}, {"name": "Захар 1 кг", "cat": "Бакалия", "unit": "кг", "kw": ["захар"], "prices": [["Лидл", "1.69"], ["Кауфланд", "1.79"], ["Фантастико", "1.99"]]}, {"name": "Брашно тип 500 1 кг", "cat": "Бакалия", "unit": "кг", "kw": ["брашно"], "prices": [["Лидл", "1.39"], ["Кауфланд", "1.49"], ["Билла", "1.59"]]}, {"name": "Олио слънчоглед 1 л", "cat": "Бакалия", "unit": "л", "kw": ["олио", "слънчоглед", "олио слънчогледово"], "prices": [["Кауфланд", "3.19"], ["Лидл", "3.29"], ["Билла", "3.49"]]}, {"name": "Сол 1 кг", "cat": "Бакалия", "unit": "кг", "kw": ["сол"], "prices": [["Лидл", "0.59"], ["Кауфланд", "0.69"]]}, {"name": "Спагети 500 г", "cat": "Бакалия", "unit": "бр", "kw": ["спагети", "макарони", "паста"], "prices": [["Лидл", "1.29"], ["Кауфланд", "1.39"], ["Билла", "1.49"]]}, {"name": "Леща 500 г", "cat": "Бакалия", "unit": "бр", "kw": ["леща", "бобови"], "prices": [["Кауфланд", "1.99"], ["Фантастико", "2.19"]]}, {"name": "Консерва риба тон", "cat": "Бакалия", "unit": "бр", "kw": ["риба тон", "тон", "консерва"], "prices": [["Лидл", "3.49"], ["Билла", "3.69"]]}, {"name": "Домати 1 кг", "cat": "Плодове и зеленчуци", "unit": "кг", "kw": ["домати", "домат"], "prices": [["Фантастико", "3.29"], ["Лидл", "3.49"], ["Кауфланд", "3.79"]]}, {"name": "Краставици 1 кг", "cat": "Плодове и зеленчуци", "unit": "кг", "kw": ["краставици", "краставица"], "prices": [["Фантастико", "2.49"], ["Лидл", "2.69"]]}, {"name": "Картофи 1 кг", "cat": "Плодове и зеленчуци", "unit": "кг", "kw": ["картофи", "картоф"], "prices": [["Лидл", "1.29"], ["Кауфланд", "1.39"], ["Фантастико", "1.49"]]}, {"name": "Ябълки 1 кг", "cat": "Плодове и зеленчуци", "unit": "кг", "kw": ["ябълки", "ябълка"], "prices": [["Лидл", "2.29"], ["Фантастико", "2.49"], ["Кауфланд", "2.59"]]}, {"name": "Банани 1 кг", "cat": "Плодове и зеленчуци", "unit": "кг", "kw": ["банани", "банан"], "prices": [["Кауфланд", "2.99"], ["Лидл", "3.09"], ["Билла", "3.19"]]}, {"name": "Кафе смляно 250 г", "cat": "Напитки", "unit": "бр", "kw": ["кафе", "смляно кафе"], "prices": [["Лидл", "4.99"], ["Кауфланд", "5.29"], ["Билла", "5.79"]]}, {"name": "Чай черен 20 бр", "cat": "Напитки", "unit": "бр", "kw": ["чай", "черен чай"], "prices": [["Лидл", "1.99"], ["Кауфланд", "2.19"]]}, {"name": "Минерална вода 1.5 л", "cat": "Напитки", "unit": "бр", "kw": ["вода", "минерална вода"], "prices": [["Лидл", "0.69"], ["Кауфланд", "0.75"], ["Билла", "0.79"]]}, {"name": "Портокалов сок 1 л", "cat": "Напитки", "unit": "л", "kw": ["сок", "портокал"], "prices": [["Лидл", "2.79"], ["Фантастико", "2.99"]]}, {"name": "Шоколад млечен 100 г", "cat": "Сладкиши", "unit": "бр", "kw": ["шоколад", "млечен шоколад"], "prices": [["Лидл", "1.79"], ["Билла", "1.89"], ["Фантастико", "2.09"]]}, {"name": "Бисквити 200 г", "cat": "Сладкиши", "unit": "бр", "kw": ["бисквити", "бисквита"], "prices": [["Кауфланд", "1.99"], ["Лидл", "2.09"]]}, {"name": "Тоалетна хартия 8 бр", "cat": "Хигиена", "unit": "бр", "kw": ["тоалетна хартия", "хартия"], "prices": [["Лидл", "4.49"], ["Кауфланд", "4.79"], ["Билла", "5.29"]]}, {"name": "Перално 2 кг", "cat": "Хигиена", "unit": "кг", "kw": ["перално", "пране"], "prices": [["Кауфланд", "8.99"], ["Лидл", "9.49"]]}, {"name": "Паста за зъби 75 мл", "cat": "Хигиена", "unit": "бр", "kw": ["паста за зъби", "зъби"], "prices": [["Лидл", "2.99"], ["Билла", "3.29"], ["Фантастико", "3.49"]]}, {"name": "Шампоан 400 мл", "cat": "Хигиена", "unit": "мл", "kw": ["шампоан"], "prices": [["Лидл", "5.49"], ["Кауфланд", "5.99"]]}]};
+
+const KEY = 'pazar-web-v1';
+const MONTHS = ['януари','февруари','март','април','май','юни','юли','август','септември','октомври','ноември','декември'];
+const CYR = {а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ж:'zh',з:'z',и:'i',й:'',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sht',ъ:'',ь:'',ю:'u',я:'a'};
+
+let S, T = 'search', Q = '', LID = null, REPORT_MONTH = null;
+let EDIT_PID = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>]/g, c => ({"&":"&","<":"<",">":">"}[c]));
+const uid = p => p + Math.random().toString(36).slice(2, 8);
+const today = () => new Date().toISOString().slice(0, 10);
+const thisMonth = () => today().slice(0, 7);
+const norm = s => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
+const money = v => (Math.round((Number(v) || 0) * 100) / 100).toFixed(2) + ' лв';
+const qty = v => Number.isInteger(v) ? String(v) : String(v).replace(/0+$/, '').replace(/\.$/, '');
+const loose = s => [...norm(s)].map(ch => CYR[ch] !== undefined ? CYR[ch] : (/[\p{L}\p{N}]/u.test(ch) ? ch : '')).join('').replace(/[yj]/g, '');
+
+/* ---------- данни ---------- */
+
+function seed() {
+  const stores = DEMO.stores.map(name => ({ id: uid('s'), name }));
+  const sid = {};
+  DEMO.stores.forEach((n, i) => { sid[n] = stores[i].id; });
+  const products = DEMO.products.map(p => ({
+    id: uid('p'), name: p.name, cat: p.cat || 'Други', unit: p.unit || 'бр',
+    kw: p.kw || [],
+    offers: Object.fromEntries((p.prices || []).map(([st, pr]) => [sid[st], Number(pr)])),
+    img: null
+  }));
+  return { stores, products, lists: [], purchases: [], budget: 0 };
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+}
+function load() {
+  try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+}
+
+/* ---------- категории ---------- */
+
+function allCategories() {
+  const cats = new Set(['Други']);
+  for (const p of S.products) if (p.cat) cats.add(p.cat);
+  return Array.from(cats).sort((a, b) => a.localeCompare(b, 'bg'));
+}
+
+function renderCatList() {
+  const dl = document.getElementById('catlist');
+  if (dl) dl.innerHTML = allCategories().map(c => `<option value="${esc(c)}"></option>`).join('');
+}
+
+/* ---------- търсене ---------- */
+
+function score(q, name, kw) {
+  q = norm(q);
+  const n = norm(name);
+  if (!q) return 0;
+  let best = 0;
+  if (q === n) best = 100;
+  else if (n.startsWith(q)) best = 80;
+  else if (n.includes(q)) best = 60;
+  else if (q.length >= 3 && q.includes(n)) best = 55;
+  for (const k of (kw || [])) {
+    const kk = norm(k);
+    if (!kk) continue;
+    if (q === kk) best = Math.max(best, 90);
+    else if (q.includes(kk) || kk.includes(q)) best = Math.max(best, 50);
+  }
+  const ql = loose(q), nl = loose(name);
+  if (ql.length >= 2) {
+    if (ql === nl) best = Math.max(best, 85);
+    else if (nl.startsWith(ql)) best = Math.max(best, 75);
+    else if (nl.includes(ql)) best = Math.max(best, 55);
+  }
+  const toks = q.split(' ').filter(t => t.length >= 2);
+  if (toks.length > 1 && best < 70 && toks.every(t => n.includes(t))) best = 70;
+  return best;
+}
+
+function findProduct(ref) {
+  const n = norm(ref);
+  const exact = S.products.filter(p => norm(p.name) === n);
+  if (exact.length === 1) return exact[0];
+  let best = 0, top = [];
+  for (const p of S.products) {
+    const sc = score(ref, p.name, p.kw);
+    if (!sc) continue;
+    if (sc > best) { best = sc; top = [p]; }
+    else if (sc === best) top.push(p);
+  }
+  return top.length === 1 ? top[0] : null;
+}
+
+function offersOf(p) {
+  return Object.entries(p.offers || {})
+    .map(([sid, price]) => ({ store: S.stores.find(s => s.id === sid), price: Number(price) }))
+    .filter(o => o.store)
+    .sort((a, b) => a.price - b.price || a.store.name.localeCompare(b.store.name, 'bg'));
+}
+
+function cheapestOffer(p) { const o = offersOf(p); return o.length ? o[0] : null; }
+
+/* ---------- списъци ---------- */
+
+function activeList() { return S.lists.find(l => l.status === 'active') || null; }
+function curList() { return S.lists.find(l => l.id === LID) || activeList() || null; }
+
+function ensureList() {
+  let l = activeList();
+  if (!l) {
+    l = { id: uid('l'), name: 'Списък ' + (S.lists.length + 1), created: today(), status: 'active', items: [] };
+    S.lists.push(l);
+    LID = l.id;
+  }
+  return l;
+}
+
+function newList() {
+  const l = { id: uid('l'), name: 'Списък ' + (S.lists.length + 1), created: today(), status: 'active', items: [] };
+  S.lists.forEach(x => { if (x.status === 'active') x.status = 'open'; });
+  S.lists.push(l);
+  LID = l.id;
+  save(); render(); toast('Нов списък: ' + l.name);
+}
+
+function estimate(it) {
+  const p = it.productId && S.products.find(x => x.id === it.productId);
+  if (!p) return null;
+  const os = offersOf(p);
+  if (!os.length) return null;
+  if (it.storeId) {
+    const hit = os.find(o => o.store.id === it.storeId);
+    if (hit) return hit;
+  }
+  return os[0];
+}
+
+function listTotals(l) {
+  let total = 0, bought = 0;
+  const by = {}, missing = [];
+  for (const it of l.items) {
+    if (it.bought) { bought += Number(it.spent) || 0; continue; }
+    const e = estimate(it);
+    if (!e) { missing.push(it); continue; }
+    const line = e.price * it.qty;
+    total += line;
+    const k = e.store.id;
+    by[k] = (by[k] || 0) + line;
+  }
+  return { total, bought, by, missing };
+}
+
+function addItem(name, amount) {
+  const l = ensureList();
+  const p = findProduct(name);
+  const display = p ? p.name : name;
+  const existing = l.items.find(i => norm(i.name) === norm(display));
+  if (existing) { existing.qty = Math.round((existing.qty + amount) * 100) / 100; }
+  else {
+    const best = p ? cheapestOffer(p) : null;
+    l.items.push({
+      id: uid('i'), name: display, productId: p ? p.id : null, qty: amount,
+      unit: p ? p.unit : 'бр', storeId: best ? best.store.id : null, bought: false, spent: 0
+    });
+  }
+  save(); render();
+  if (!p) {
+    const near = S.products.filter(x => score(name, x.name, x.kw) >= 70).slice(0, 3).map(x => x.name);
+    toast(near.length ? 'Добавено без цена. Възможни: ' + near.join(', ') : 'Добавено: ' + display);
+  } else toast('Добавено: ' + display);
+}
+
+function parseItem(text) {
+  const m = String(text || '').trim().match(/^(.*?)\s*[x*×]\s*(\d+(?:[.,]\d+)?)$/i);
+  if (m && m[1].trim()) return { name: m[1].trim(), qty: Number(m[2].replace(',', '.')) };
+  return { name: String(text || '').trim(), qty: 1 };
+}
+
+function addItemFromInput() {
+  const el = document.getElementById('newitem');
+  if (!el) return;
+  const { name, qty: amount } = parseItem(el.value);
+  if (!name) return;
+  if (!(amount > 0)) return toast('Невалидно количество');
+  el.value = '';
+  addItem(name, amount);
+}
+
+function delItem(id) {
+  const l = curList(); if (!l) return;
+  l.items = l.items.filter(i => i.id !== id);
+  save(); render();
+}
+
+function toggleBought(id) {
+  const l = curList(); if (!l) return;
+  const it = l.items.find(i => i.id === id); if (!it) return;
+  if (it.bought) { it.bought = false; it.spent = 0; }
+  else {
+    const e = estimate(it);
+    if (!e) return toast('Няма цена за ' + it.name);
+    it.bought = true; it.spent = Math.round(e.price * it.qty * 100) / 100; it.storeId = e.store.id;
+  }
+  save(); render();
+}
+
+function planStores() {
+  const l = curList(); if (!l) return;
+  let n = 0;
+  for (const it of l.items) {
+    if (it.bought) continue;
+    const best = it.productId && cheapestOffer(S.products.find(p => p.id === it.productId));
+    if (best && it.storeId !== best.store.id) { it.storeId = best.store.id; n++; }
+  }
+  save(); render(); toast(n ? 'Разпределени позиции: ' + n : 'Всичко вече е по най-евтиния магазин');
+}
+
+function buyList() {
+  const l = curList(); if (!l) return;
+  const pending = l.items.filter(i => !i.bought);
+  if (!pending.length) return toast('Всичко вече е купено');
+  const groups = {};
+  for (const it of pending) {
+    const e = estimate(it);
+    if (!e) return toast('Няма цена за ' + it.name);
+    (groups[e.store.id] = groups[e.store.id] || []).push({ it, e });
+  }
+  for (const [sid, rows] of Object.entries(groups)) {
+    const lines = rows.map(({ it, e }) => {
+      const total = Math.round(e.price * it.qty * 100) / 100;
+      it.bought = true; it.spent = total; it.storeId = e.store.id;
+      return { name: it.name, qty: it.qty, unit: it.unit, unitPrice: e.price, total };
+    });
+    S.purchases.push({
+      id: uid('pu'), date: today(), storeId: sid, items: lines,
+      total: Math.round(lines.reduce((a, b) => a + b.total, 0) * 100) / 100,
+      listName: l.name
+    });
+  }
+  if (l.items.every(i => i.bought)) l.status = 'done';
+  save(); render(); toast('Покупката е записана');
+}
+
+function armDelList(btn) {
+  twoStep(btn, 'Сигурно?', () => {
+    const l = curList(); if (!l) return;
+    S.lists = S.lists.filter(x => x.id !== l.id);
+    LID = null; save(); render(); toast('Списъкът е изтрит');
+  });
+}
+
+/* ---------- продукти / категории ---------- */
+
+function openProdModal(p = null) {
+  EDIT_PID = p ? p.id : null;
+  const title = document.getElementById('prodModalTitle');
+  const name = document.getElementById('prodName');
+  const cat = document.getElementById('prodCat');
+  const unit = document.getElementById('prodUnit');
+  const kw = document.getElementById('prodKw');
+  const preview = document.getElementById('dropPreview');
+  const dtext = document.getElementById('dropText');
+  const priceContainer = document.getElementById('priceInputs');
+  if (p) {
+    title.textContent = 'Редактирай продукт';
+    name.value = p.name;
+    cat.value = p.cat || '';
+    unit.value = p.unit || 'бр';
+    kw.value = (p.kw || []).join(', ');
+    if (p.img) {
+      preview.innerHTML = `<img class="pimg" src="${esc(p.img)}" alt="">`;
+      dtext.textContent = 'Свали нова снимка за смяна';
+    } else {
+      preview.innerHTML = '📷';
+      dtext.textContent = 'Свали снимка тук или натисни';
+    }
+    // цени по магазини
+    priceContainer.innerHTML = S.stores.map(st => `
+      <div>
+        <label class="muted" style="display:block;margin-bottom:4px">${esc(st.name)}</label>
+        <input class="input" type="number" min="0" step="0.01" placeholder="напр. 2.49" 
+               data-store-id="${st.id}" 
+               value="${p.offers && p.offers[st.id] ? p.offers[st.id].toFixed(2) : ''}">
+      </div>
+    `).join('');
+  } else {
+    title.textContent = 'Нов продукт';
+    name.value = '';
+    cat.value = '';
+    unit.value = 'бр';
+    kw.value = '';
+    preview.innerHTML = '📷';
+    dtext.textContent = 'Свали снимка тук или натисни';
+    priceContainer.innerHTML = S.stores.map(st => `
+      <div>
+        <label class="muted" style="display:block;margin-bottom:4px">${esc(st.name)}</label>
+        <input class="input" type="number" min="0" step="0.01" placeholder="напр. 2.49" 
+               data-store-id="${st.id}">
+      </div>
+    `).join('');
+  }
+  renderCatList();
+  document.getElementById('prodModal').classList.remove('hidden');
+}
+
+function closeProdModal() {
+  document.getElementById('prodModal').classList.add('hidden');
+  EDIT_PID = null;
+}
+
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+function dragLeave(e) { e.currentTarget.classList.remove('dragover'); }
+function dropImage(e) {
+  e.preventDefault(); e.currentTarget.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) pickImage(f);
+}
+
+function pickImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const preview = document.getElementById('dropPreview');
+    const dtext = document.getElementById('dropText');
+    preview.innerHTML = `<img class="pimg" src="${esc(reader.result)}" alt="">`;
+    dtext.textContent = 'Свали нова снимка за смяна';
+    preview.dataset.dataUrl = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProduct() {
+  const name = document.getElementById('prodName').value.trim();
+  if (!name) return toast('Името е задължително');
+  const cat = document.getElementById('prodCat').value.trim() || 'Други';
+  const unit = document.getElementById('prodUnit').value.trim() || 'бр';
+  const kw = document.getElementById('prodKw').value.split(',').map(s => s.trim()).filter(Boolean);
+  const img = document.getElementById('dropPreview').dataset.dataUrl || null;
+  // цени по магазини
+  const offers = {};
+  document.querySelectorAll('#priceInputs input[data-store-id]').forEach(inp => {
+    const sid = inp.dataset.storeId;
+    const val = parseFloat(inp.value);
+    if (!isNaN(val) && val >= 0) offers[sid] = val;
+  });
+
+  if (EDIT_PID) {
+    const p = S.products.find(x => x.id === EDIT_PID);
+    if (p) {
+      p.name = name; p.cat = cat; p.unit = unit; p.kw = kw; p.offers = offers;
+      if (img) p.img = img;
+      toast('Продуктът е обновен');
+    }
+  } else {
+    const exists = S.products.find(x => norm(x.name) === norm(name));
+    if (exists) return toast('Продукт с това име вече съществува');
+    const p = { id: uid('p'), name, cat, unit, kw, offers, img };
+    S.products.push(p);
+    toast('Продуктът е добавен');
+  }
+  save(); render(); closeProdModal();
+}
+
+function deleteProduct(id) {
+  S.products = S.products.filter(p => p.id !== id);
+  for (const l of S.lists) {
+    l.items = l.items.filter(it => it.productId !== id);
+  }
+  save(); render(); toast('Продуктът е изтрит');
+}
+
+function armDelProduct(p) {
+  twoStep({id: 'delp-' + p.id}, 'Сигурно?', () => deleteProduct(p.id));
+}
+
+/* ---------- отчет ---------- */
+
+function monthLabel(m) {
+  const [y, mm] = String(m).split('-');
+  return (MONTHS[Number(mm) - 1] || m) + ' ' + y;
+}
+
+function reportData(month) {
+  const ps = S.purchases.filter(p => p.date.slice(0, 7) === month);
+  let total = 0;
+  const byStore = {}, byCat = {};
+  for (const p of ps) {
+    total += p.total;
+    const st = S.stores.find(s => s.id === p.storeId);
+    const key = st ? st.name : 'Други';
+    byStore[key] = (byStore[key] || 0) + p.total;
+    for (const line of p.items) {
+      const prod = S.products.find(x => x.name === line.name);
+      const cat = (prod && prod.cat) || 'Други';
+      byCat[cat] = (byCat[cat] || 0) + line.total;
+    }
+  }
+  return {
+    ps, total,
+    count: ps.length,
+    avg: ps.length ? total / ps.length : 0,
+    byStore: Object.entries(byStore).sort((a, b) => b[1] - a[1]),
+    byCat: Object.entries(byCat).sort((a, b) => b[1] - a[1])
+  };
+}
+
+function setBudget(v) {
+  const n = Number(String(v).replace(',', '.'));
+  S.budget = isNaN(n) || n <= 0 ? 0 : Math.round(n * 100) / 100;
+  save(); render();
+}
+
+/* ---------- изобразяване ---------- */
+
+function setTab(t) { T = t; render(); }
+function rerender() { render(); }
+
+function render() {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === T));
+  const v = document.getElementById('view');
+  if (T === 'search') { v.innerHTML = viewSearch(); renderSearchResults(); }
+  else if (T === 'list') v.innerHTML = viewList();
+  else if (T === 'products') v.innerHTML = viewProducts();
+  else if (T === 'purchases') v.innerHTML = viewPurchases();
+  else v.innerHTML = viewReport();
+}
+
+function viewSearch() {
+  return `
+  <div class="card">
+    <input id="q" class="input" placeholder="Търси продукт — напр. мляко, хляб, mljako"
+           value="${esc(Q)}" oninput="Q=this.value;renderSearchResults()">
+    <div class="hint">Търсенето разпознава кирилица и латиница. Цените са подредени от най-евтината.</div>
+  </div>
+  <div id="res"></div>`;
+}
+
+function renderSearchResults() {
+  const el = document.getElementById('res');
+  if (!el) return;
+  const q = Q.trim();
+  let list;
+  if (!q) {
+    list = S.products.slice(0, 12).map(p => ({ p, sc: 0 }));
+  } else {
+    list = S.products
+      .map(p => ({ p, sc: score(q, p.name, p.kw) }))
+      .filter(x => x.sc > 0)
+      .sort((a, b) => b.sc - a.sc || a.p.name.length - b.p.name.length)
+      .slice(0, 20);
+  }
+  if (!list.length) {
+    el.innerHTML = `<div class="card empty">Няма съвпадения за „${esc(q)}“.<br>
+      Опитай с други думи или добави продукта в раздел „Продукти“.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="plist">` + list.map(({ p }) => {
+    const os = offersOf(p);
+    const rows = os.map((o, i) => `
+      <div class="prow ${i === 0 ? 'best' : ''}">
+        <span>${i === 0 ? '▶ ' : ''}${esc(o.store.name)}</span>
+        <span class="pprice">${money(o.price)}</span>
+      </div>`).join('') || `<div class="muted" style="padding:4px 2px">Няма записани цени</div>`;
+    const imgHtml = p.img ? `<img class="pimg" src="${esc(p.img)}" alt="">` : '<div class="pimgph">📷</div>';
+    return `
+    <div class="card" style="margin-bottom:0">
+      <div class="phead">
+        <div style="display:flex;gap:10px;align-items:center">
+          ${imgHtml}
+          <div style="min-width:0">
+            <div class="ptitle">${esc(p.name)}</div>
+            <div class="pmeta">${esc(p.cat)} · ${esc(p.unit)}${os.length ? ' · ' + os.length + ' цени' : ''}</div>
+          </div>
+        </div>
+        <div class="row" style="gap:6px">
+          <button class="btn small primary" onclick="addFromSearch('${p.id}')">+ Списък</button>
+          <button class="btn small" onclick="openProdModal(S.products.find(x=>x.id==='${p.id}'))">Редактирай</button>
+        </div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function addFromSearch(id) {
+  const p = S.products.find(x => x.id === id);
+  if (p) addItem(p.name, 1);
+}
+
+function viewList() {
+  const l = curList();
+  const selector = `
+  <div class="card">
+    <div class="row between">
+      <select class="input select" style="max-width:70%" onchange="LID=this.value;render()">
+        ${S.lists.length
+          ? S.lists.map(x => `<option value="${x.id}" ${l && x.id === l.id ? 'selected' : ''}>${esc(x.name)}${x.status === 'done' ? ' (завършен)' : ''}</option>`).join('')
+          : '<option>Няма списъци</option>'}
+      </select>
+      <button class="btn" onclick="newList()">+ Нов</button>
+    </div>
+  </div>`;
+
+  if (!l) {
+    return selector + `<div class="card empty">Все още няма списъци.<br>Натисни „+ Нов“ или добави продукт от „Търсене“.</div>`;
+  }
+
+  const groups = {};
+  for (const it of l.items) {
+    const k = it.storeId || 'none';
+    (groups[k] = groups[k] || []).push(it);
+  }
+  const order = S.stores.map(s => s.id).concat(['none']);
+  const groupHtml = order.filter(k => groups[k]).map(k => {
+    const store = S.stores.find(s => s.id === k);
+    const items = groups[k];
+    const subtotal = items.filter(i => !i.bought).reduce((sum, it) => {
+      const e = estimate(it); return sum + (e ? e.price * it.qty : 0);
+    }, 0);
+    return `
+    <div class="group">
+      <div class="ghead">
+        <span>${store ? esc(store.name) : 'Без магазин'}</span>
+        <span>${items.length} поз.</span>
+      </div>
+      ${items.map(it => itemHtml(l, it)).join('')}
+    </div>`;
+  }).join('');
+
+  const t = listTotals(l);
+  const pending = l.items.filter(i => !i.bought).length;
+
+  const addForm = `
+  <div class="card">
+    <div class="addrow">
+      <input id="newitem" class="input" list="plist" placeholder="Продукт, напр. мляко*2"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();addItemFromInput()}">
+      <button class="btn primary" onclick="addItemFromInput()">Добави</button>
+    </div>
+    <datalist id="plist">${S.products.map(p => `<option value="${esc(p.name)}"></option>`).join('')}</datalist>
+    <div class="hint">Количество с * или x: „мляко*2“. Имена с интервали — точно както в каталога.</div>
+  </div>`;
+
+  const summary = `
+  <div class="card">
+    <div class="kv"><span class="n">Оценена сума</span><span class="v">${money(t.total)}</span></div>
+    ${Object.entries(t.by).map(([sid, val]) => {
+      const st = S.stores.find(s => s.id === sid);
+      return `<div class="kv"><span class="n">${st ? esc(st.name) : 'Други'}</span><span class="v">${money(val)}</span></div>`;
+    }).join('')}
+    ${t.bought ? `<div class="kv"><span class="n">Вече похарчено</span><span class="v" style="color:var(--ok)">${money(t.bought)}</span></div>` : ''}
+    ${t.missing.length ? `<div class="hint" style="color:var(--warn)">Без цена: ${t.missing.map(i => esc(i.name)).join(', ')}</div>` : ''}
+    <div class="actions">
+      <button class="btn primary" onclick="buyList()" ${pending ? '' : 'disabled style="opacity:.5"'}>Запиши покупка</button>
+      <button class="btn" onclick="planStores()">Разпредели по магазини</button>
+      <button class="btn danger" id="delListBtn" onclick="armDelList(this)">Изтрий списъка</button>
+    </div>
+    <div class="hint">${pending} ${pending === 1 ? 'позиция' : 'позиции'} за покупка</div>
+  </div>`;
+
+  return selector + addForm + `<div class="card">${l.items.length ? groupHtml : '<div class="empty">Списъкът е празен.</div>'}</div>` + summary;
+}
+
+function itemHtml(l, it) {
+  const idx = l.items.indexOf(it) + 1;
+  const e = estimate(it);
+  return `
+  <div class="item ${it.bought ? 'bought' : ''}">
+    <button class="check" onclick="toggleBought('${it.id}')" title="Маркирай като купено">${it.bought ? '✓' : ''}</button>
+    <div class="imain">
+      <div class="iname">${idx}. ${esc(it.name)}</div>
+      <div class="imeta">x${qty(it.qty)} ${esc(it.unit || 'бр')}${e ? ' · ' + money(e.price) + '/бр' : ' · няма цена'}</div>
+    </div>
+    <div class="itotal">${it.bought ? money(it.spent || 0) : (e ? money(e.price * it.qty) : '—')}</div>
+    <button class="x" onclick="delItem('${it.id}')" title="Премахни">×</button>
+  </div>`;
+}
+
+function viewProducts() {
+  renderCatList();
+  const cats = allCategories();
+  const catHtml = cats.map(c => {
+    const prods = S.products.filter(p => p.cat === c).sort((a, b) => a.name.localeCompare(b.name, 'bg'));
+    return `
+    <div class="card">
+      <div class="phead">
+        <div class="ptitle">${esc(c)}</div>
+        <div class="row">
+          <button class="btn small primary" onclick="openProdModal({cat:'${esc(c)}'})">+ Добави</button>
+        </div>
+      </div>
+      ${prods.length ? prods.map(p => productRow(p)).join('') : '<div class="empty">Няма продукти в тази категория.</div>'}
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    <div class="phead">
+      <div class="ptitle">Категории</div>
+    </div>
+    <div class="catlist">
+      ${cats.map(c => `<span class="catpill">${esc(c)}<button onclick="renameCategory('${esc(c)}')" title="Преименуй">✎</button><button onclick="armDelCategory('${esc(c)}')" title="Изтрий">×</button></span>`).join('')}
+    </div>
+    <div class="catrow">
+      <input id="newCat" class="input" placeholder="Нова категория" onkeydown="if(event.key==='Enter'){event.preventDefault();addCategory()}">
+      <button class="btn primary" onclick="addCategory()">Добави</button>
+    </div>
+  </div>
+  ${catHtml}`;
+}
+
+function productRow(p) {
+  const os = offersOf(p);
+  const best = os[0];
+  const imgHtml = p.img ? `<img class="pimg" src="${esc(p.img)}" alt="">` : '<div class="pimgph">📷</div>';
+  return `
+  <div class="prowcard">
+    ${imgHtml}
+    <div class="pinfo">
+      <div class="pname">${esc(p.name)}</div>
+      <div class="pmeta2">${esc(p.cat)} · ${esc(p.unit)} · ${(p.kw || []).join(', ') || 'няма ключови думи'}</div>
+    </div>
+    <div class="pprices" style="text-align:right;min-width:120px">
+      ${os.length ? os.map((o, i) => `<div class="${i===0?'best':''}">${esc(o.store.name)}: ${money(o.price)}</div>`).join('') : '<div class="muted">няма цени</div>'}
+      <div class="row" style="margin-top:6px;justify-content:flex-end">
+        <button class="btn small" onclick="openProdModal(S.products.find(x=>x.id==='${p.id}'))">Редактирай</button>
+        <button class="btn small danger" onclick="armDelProduct(S.products.find(x=>x.id==='${p.id}'))">Изтрий</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addCategory() {
+  const el = document.getElementById('newCat');
+  const name = el.value.trim();
+  if (!name) return;
+  if (allCategories().includes(name)) return toast('Тази категория вече съществува');
+  el.value = '';
+  // Категорията ще се появи, когато се добави продукт с нея
+  toast('Категорията е добавена (ще се появи при първи продукт)');
+}
+
+function renameCategory(oldName) {
+  const newName = prompt('Ново име на категория:', oldName);
+  if (!newName || newName.trim() === oldName) return;
+  const nn = newName.trim();
+  if (allCategories().includes(nn)) return toast('Категория с това име вече съществува');
+  for (const p of S.products) if (p.cat === oldName) p.cat = nn;
+  save(); render(); toast('Категорията е преименувана');
+}
+
+function armDelCategory(name) {
+  twoStep({id: 'delc-' + name}, 'Сигурно?', () => {
+    for (const p of S.products) if (p.cat === name) p.cat = 'Други';
+    save(); render(); toast('Категорията е изтрита (продуците са в „Други“)');
+  });
+}
+
+function viewPurchases() {
+  if (!S.purchases.length) {
+    return `<div class="card empty">Няма записани покупки.<br>Първо направи списък и натисни „Запиши покупка“.</div>`;
+  }
+  const ps = S.purchases.slice().sort((a, b) => b.date.localeCompare(a.date));
+  const total = ps.reduce((s, p) => s + p.total, 0);
+  return `
+  <div class="card">
+    <div class="kv"><span class="n">Всички покупки</span><span class="v">${money(total)}</span></div>
+    <div class="kv"><span class="n">Брой</span><span class="v">${ps.length}</span></div>
+  </div>
+  ${ps.map(p => {
+    const st = S.stores.find(s => s.id === p.storeId);
+    return `
+    <div class="card">
+      <div class="phead" style="margin-bottom:4px">
+        <div>
+          <div class="ptitle">${st ? esc(st.name) : 'Други'}</div>
+          <div class="pmeta">${esc(p.date)} · ${p.items.length} поз.${p.listName ? ' · ' + esc(p.listName) : ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="ptitle">${money(p.total)}</div>
+          <button class="btn small danger" onclick="delPurchase('${p.id}')">Изтрий</button>
+        </div>
+      </div>
+      ${p.items.map(i => `<div class="kv"><span class="n">${esc(i.name)} ×${qty(i.qty)}</span><span class="v">${money(i.total)}</span></div>`).join('')}
+    </div>`;
+  }).join('')}`;
+}
+
+function delPurchase(id) {
+  const p = S.purchases.find(x => x.id === id);
+  if (p) {
+    const l = S.lists.find(x => x.name === p.listName);
+    if (l) {
+      for (const it of l.items) {
+        if (it.bought && p.items.some(line => line.name === it.name)) {
+          it.bought = false; it.spent = 0;
+        }
+      }
+      if (l.status === 'done' && l.items.some(i => !i.bought)) l.status = 'active';
+    }
+  }
+  S.purchases = S.purchases.filter(x => x.id !== id);
+  save(); render(); toast('Покупката е изтрита');
+}
+
+function viewReport() {
+  const m = REPORT_MONTH || thisMonth();
+  const r = reportData(m);
+  const budget = Number(S.budget) || 0;
+  const pct = budget ? (r.total / budget) * 100 : 0;
+  const over = pct > 100;
+  return `
+  <div class="card">
+    <div class="row between">
+      <input class="input select" type="month" style="max-width:60%" value="${esc(m)}"
+             onchange="REPORT_MONTH=this.value;render()">
+      <button class="btn small" onclick="REPORT_MONTH=null;render()">Този месец</button>
+    </div>
+    <div class="hint">Месец: ${esc(monthLabel(m))}</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="l">Общо</div><div class="v">${money(r.total)}</div></div>
+    <div class="stat"><div class="l">Покупки</div><div class="v">${r.count}</div></div>
+    <div class="stat"><div class="l">Средна</div><div class="v">${money(r.avg)}</div></div>
+  </div>
+
+  <div class="card">
+    <div class="row between">
+      <div class="ptitle">Бюджет за месеца</div>
+      <div class="row" style="gap:6px">
+        <input class="input" type="number" min="0" step="10" style="width:110px;padding:7px 9px"
+               value="${budget || ''}" placeholder="400" onchange="setBudget(this.value)">
+        <span class="muted">лв</span>
+      </div>
+    </div>
+    ${budget ? `
+      <div class="bar"><span class="fill ${over ? 'over' : ''}" style="width:${Math.min(pct, 100)}%"></span></div>
+      <div class="muted">Похарчено ${pct.toFixed(1)}% · остават ${money(budget - r.total)}</div>
+    ` : `<div class="hint">Не е зададен бюджет. Въведи сума горе.</div>`}
+  </div>
+
+  ${r.ps.length ? `
+  <div class="card">
+    <div class="ptitle" style="margin-bottom:6px">По магазини</div>
+    ${r.byStore.map(([n, v]) => `<div class="kv"><span class="n">${esc(n)}</span><span class="v">${money(v)} · ${(v / r.total * 100).toFixed(0)}%</span></div>`).join('')}
+    <div class="ptitle" style="margin:14px 0 6px">По категории</div>
+    ${r.byCat.map(([n, v]) => `<div class="kv"><span class="n">${esc(n)}</span><span class="v">${money(v)} · ${(v / r.total * 100).toFixed(0)}%</span></div>`).join('')}
+  </div>` : `<div class="card empty">Няма покупки за този месец.</div>`}
+
+  <div class="card">
+    <div class="ptitle" style="margin-bottom:6px">Покупки</div>
+    ${r.ps.map(p => {
+      const st = S.stores.find(s => s.id === p.storeId);
+      return `<div class="kv"><span class="n">${esc(p.date)} · ${st ? esc(st.name) : 'Други'}</span><span class="v">${money(p.total)}</span></div>`;
+    }).join('') || '<div class="muted">Няма данни.</div>'}
+  </div>`;
+}
+
+/* ---------- помощни ---------- */
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+let armed = null, armedTimer = null, armedOld = null;
+function twoStep(btn, label, fn) {
+  if (armed === btn.id) {
+    clearTimeout(armedTimer);
+    armed = null;
+    btn.textContent = armedOld;
+    fn();
+    return;
+  }
+  if (armed && armedOld) armed.textContent = armedOld;
+  armed = btn.id;
+  armedOld = btn.textContent;
+  btn.textContent = label;
+  armedTimer = setTimeout(() => {
+    if (armed === btn.id) { armed = null; btn.textContent = armedOld; }
+  }, 3200);
+}
+
+function armDemo(btn) {
+  twoStep(btn, 'Сигурно?', () => {
+    S = seed(); LID = null; REPORT_MONTH = null;
+    save(); render(); toast('Демо данните са заредени');
+  });
+}
+
+function armWipe(btn) {
+  twoStep(btn, 'Сигурно?', () => {
+    S = { stores: [], products: [], lists: [], purchases: [], budget: 0 };
+    LID = null; save(); render(); toast('Всички данни са изтрити');
+  });
+}
+
+/* ---------- старт ---------- */
+
+S = load() || seed();
+if (!S.stores) S = seed();
+if (!S.lists) S.lists = [];
+if (!S.purchases) S.purchases = [];
+render();
+</script>
+</body>
+</html>
